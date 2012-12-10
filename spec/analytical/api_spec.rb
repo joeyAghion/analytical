@@ -90,7 +90,13 @@ describe "Analytical::Api" do
         @google.should_receive(:respond_to?).with(:track).and_return(false)
         @google.should_not_receive(:track)
 
-        @api.now.track('something', {:a=>1, :b=>2}).should == "console track\nclicky track"
+        @api.now.track('something', {:a=>1, :b=>2}).should =~ /console track.*clicky track/m
+      end
+      
+      it "should handle additional excludeModules argument" do
+        @api = Analytical::Api.new :modules=>[:console]
+        @console.should_receive(:track).with('something', {:a=>1, :b=>2}).and_return('console track')
+        @api.now.track('something', {:a=>1, :b=>2}).should =~ /#{Regexp.escape("if (!options || !options.filterModules || options.filterModules['console'])")}/
       end
     end
 
