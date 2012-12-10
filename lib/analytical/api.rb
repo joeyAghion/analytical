@@ -47,8 +47,10 @@ module Analytical
         @parent = _parent
       end
       def method_missing(method, *args, &block)
-        @parent.modules.values.collect do |m|
-          m.send(method, *args) if m.respond_to?(method)
+        @parent.modules.collect do |k, m|
+          if m.respond_to?(method) && (method_body = m.send(method, *args)).present?
+            "if (!options || !options.filterModules || options.filterModules['#{k}']) {\n#{method_body}\n}"
+          end
         end.delete_if{|c| c.blank?}.join("\n")
       end
     end
