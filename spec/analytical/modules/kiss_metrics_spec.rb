@@ -17,25 +17,25 @@ describe "Analytical::Modules::KissMetrics" do
   describe '#identify' do
     it 'should return a js string' do
       @api = Analytical::Modules::KissMetrics.new :parent=>@parent, :js_url_key=>'abcdef'
-      @api.identify('id', {:email=>'test@test.com'}).should == "_kmq.push([\"identify\", \"test@test.com\"]);"
+      @api.identify('id', {:email=>'test@test.com'}).should == "if (!window['disableAnalytical']) { _kmq.push([\"identify\", \"test@test.com\"]); }"
     end
   end
   describe '#event' do
     it 'should return a js string' do
       @api = Analytical::Modules::KissMetrics.new :parent=>@parent, :js_url_key=>'abcdef'
-      @api.event('Big Deal', {:something=>'good'}).should == "_kmq.push([\"record\", \"Big Deal\", #{{:something=>'good'}.to_json}]);"
+      @api.event('Big Deal', {:something=>'good'}).should == "if (!window['disableAnalytical']) { _kmq.push([\"record\", \"Big Deal\", #{{:something=>'good'}.to_json}]); }"
     end
   end
   describe '#set' do
     it 'should return a js string' do
       @api = Analytical::Modules::KissMetrics.new :parent=>@parent, :js_url_key=>'abcdef'
-      @api.set({:something=>'good', :b=>2}).should == "_kmq.push([\"set\", #{{:something=>'good', :b=>2}.to_json}]);"
+      @api.set({:something=>'good', :b=>2}).should == "if (!window['disableAnalytical']) { _kmq.push([\"set\", #{{:something=>'good', :b=>2}.to_json}]); }"
     end
   end
   describe '#alias_identity' do
     it 'should return a js string' do
       @api = Analytical::Modules::KissMetrics.new :parent=>@parent, :js_url_key=>'abcdef'
-      @api.alias_identity('foo', 'bar').should == "_kmq.push([\"alias\", \"foo\", \"bar\"]);"
+      @api.alias_identity('foo', 'bar').should == "if (!window['disableAnalytical']) { _kmq.push([\"alias\", \"foo\", \"bar\"]); }"
     end
   end
   describe '#init_javascript' do

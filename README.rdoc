@@ -127,6 +127,12 @@ To disable javascript helper functionality, use
 
     analytical :javascript_helpers => false
 
+== Disabling analytical on the client _(experimental)_
+
+In certain cases it may be helpful to skip tracking based on client-side logic (e.g., if the page's HTML is cached). Set a `window['disableAnalytical']` property to true prior to the `head_prepend_javascript` block and client-side tracking will be skipped. As in:
+
+    window['disableAnalytical'] = !!navigator.userAgent.match(/PhantomJS/);
+
 == Note on Patches/Pull Requests
 
 I would be extremely happy to accept contributions to this project!  If you think something should work differently, send me a message and I'd love to discuss your ideas.  Even better:

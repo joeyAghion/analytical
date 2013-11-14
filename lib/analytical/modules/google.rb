@@ -13,16 +13,18 @@ module Analytical
           js = <<-HTML
           <!-- Analytical Init: Google -->
           <script type="text/javascript">
-            var _gaq = _gaq || [];
-            _gaq.push(['_setAccount', '#{options[:key]}']);
-            _gaq.push(['_setDomainName', '#{options[:domain]}']);
-            #{"_gaq.push(['_setAllowLinker', true]);" if options[:allow_linker]}
-            #{"_gaq.push(['_trackPageview']);" unless options[:manually_track_pageviews]}
-            (function() {
-              var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-              ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-            })();
+            if (!window['disableAnalytical']) {
+              var _gaq = _gaq || [];
+              _gaq.push(['_setAccount', '#{options[:key]}']);
+              _gaq.push(['_setDomainName', '#{options[:domain]}']);
+              #{"_gaq.push(['_setAllowLinker', true]);" if options[:allow_linker]}
+              #{"_gaq.push(['_trackPageview']);" unless options[:manually_track_pageviews]}
+              (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+              })();
+            }
           </script>
           HTML
           js
@@ -34,7 +36,7 @@ module Analytical
       end
 
       def track(*args)
-        "_gaq.push(['_trackPageview'#{args.empty? ? ']' : ', "' + args.first + '"]'});"
+        "if (!window['disableAnalytical']) { _gaq.push(['_trackPageview'#{args.empty? ? ']' : ', "' + args.first + '"]'}); }"
       end
       
       def event(name, *args)
@@ -45,21 +47,23 @@ module Analytical
         label, value, noninteraction = data[:label], data[:value], data[:noninteraction]
         args = ['_trackEvent', category, action, label, value, noninteraction]
         args.pop while args[-1].nil?
-        "_gaq.push(#{args.to_json});"
+        "if (!window['disableAnalytical']) { _gaq.push(#{args.to_json}); }"
       end
 
       def event_javascript
         js = <<-HTML
-        if (data.category == null) {
-          data.category = "Event";
+        if (!window['disableAnalytical']) {
+          if (data.category == null) {
+            data.category = "Event";
+          }
+          _gaq.push(['_trackEvent', data.category, name, data.label, data.value, data.noninteraction]);
         }
-        _gaq.push(['_trackEvent', data.category, name, data.label, data.value, data.noninteraction]);
         HTML
       end
       
       def custom_event(category, action, opt_label=nil, opt_value=nil)
         args = [category, action, opt_label, opt_value].compact
-        "_gaq.push(" + [ "_trackEvent", *args].to_json + ");"
+        "if (!window['disableAnalytical']) { _gaq.push(" + [ "_trackEvent", *args].to_json + "); }"
       end
 
 
@@ -91,7 +95,7 @@ module Analytical
           if (1..5).to_a.include?(index) && !name.nil? && !value.nil?
             data = "#{index}, '#{name}', '#{value}'"
             data += (1..3).to_a.include?(scope) ? ", #{scope}" : ""
-            return "_gaq.push(['_setCustomVar', #{ data }]);"
+            return "if (!window['disableAnalytical']) { _gaq.push(['_setCustomVar', #{ data }]); }"
           end
         end
       end
@@ -99,7 +103,7 @@ module Analytical
       def set_javascript
         js = <<-HTML
         var index = parseInt(data.index);
-        if (index >= 1 && index <= 5 && data.name && data.value) {
+        if (!window['disableAnalytical'] && index >= 1 && index <= 5 && data.name && data.value) {
           var scope = null;
           switch (data.scope) {
             case '1':
@@ -136,7 +140,7 @@ module Analytical
         data << "'#{state}'"
         data << "'#{country}'"
 
-        "_gaq.push(['_addTrans', #{data.join(', ')}]);"
+        "if (!window['disableAnalytical']) { _gaq.push(['_addTrans', #{data.join(', ')}]); }"
       end
 
       # http://code.google.com/apis/analytics/docs/gaJS/gaJSApiEcommerce.html#_gat.GA_Tracker_._addItem
@@ -148,14 +152,14 @@ module Analytical
       # String quantity Required. Purchase quantity.
       def add_item(order_id, sku, name, category, price, quantity)
         data  = "'#{order_id}', '#{sku}', '#{name}', '#{category}', '#{price}', '#{quantity}'"
-        "_gaq.push(['_addItem', #{data}]);"
+        "if (!window['disableAnalytical']) { _gaq.push(['_addItem', #{data}]); }"
       end
 
       # http://code.google.com/apis/analytics/docs/gaJS/gaJSApiEcommerce.html#_gat.GA_Tracker_._trackTrans
       # Sends both the transaction and item data to the Google Analytics server.
       # This method should be used in conjunction with the add_item and add_trans methods.
       def track_trans
-        "_gaq.push(['_trackTrans']);"
+        "if (!window['disableAnalytical']) { _gaq.push(['_trackTrans']); }"
       end
 
     end

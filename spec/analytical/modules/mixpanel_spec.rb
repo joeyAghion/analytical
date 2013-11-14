@@ -17,27 +17,27 @@ describe "Analytical::Modules::Mixpanel" do
   describe '#identify' do
     it 'should return a js string' do
       @api = Analytical::Modules::Mixpanel.new :parent=>@parent, :js_url_key=>'abcdef'
-      @api.identify('id', {:email=>'test@test.com'}).should == "mixpanel.identify('id');"
+      @api.identify('id', {:email=>'test@test.com'}).should == "if (!window['disableAnalytical']) { mixpanel.identify('id'); }"
     end
     it 'should return a js string with name if included' do
       @api = Analytical::Modules::Mixpanel.new :parent=>@parent, :js_url_key=>'abcdef'
-      @api.identify('id', {:email=>'test@test.com', :name => "user_name"}).should == "mixpanel.identify('id'); mixpanel.name_tag('user_name');"
+      @api.identify('id', {:email=>'test@test.com', :name => "user_name"}).should == "if (!window['disableAnalytical']) { mixpanel.identify('id'); mixpanel.name_tag('user_name'); }"
     end
   end
   describe '#track' do
     it 'should return the tracking javascript' do
       @api = Analytical::Modules::Mixpanel.new :parent=>@parent, :key=>'abcdef'
-      @api.track('pagename', {:some=>'data'}).should == "mixpanel.track(\"pagename\", {\"some\":\"data\"}, function(){});"
+      @api.track('pagename', {:some=>'data'}).should == "if (!window['disableAnalytical']) { mixpanel.track(\"pagename\", {\"some\":\"data\"}, function(){}); }"
     end
     it 'should return the tracking javascript with a callback' do
       @api = Analytical::Modules::Mixpanel.new :parent=>@parent, :key=>'abcdef'
-      @api.track('pagename', {:some=>'data', :callback=>'fubar'}).should == "mixpanel.track(\"pagename\", {\"some\":\"data\"}, fubar);"
+      @api.track('pagename', {:some=>'data', :callback=>'fubar'}).should == "if (!window['disableAnalytical']) { mixpanel.track(\"pagename\", {\"some\":\"data\"}, fubar); }"
     end
   end
   describe '#event' do
     it 'should return a js string' do
       @api = Analytical::Modules::Mixpanel.new :parent=>@parent, :js_url_key=>'abcdef'
-      @api.event('An event happened', { :item => 43 }).should == "mixpanel.track(\"An event happened\", {\"item\":43});"
+      @api.event('An event happened', { :item => 43 }).should == "if (!window['disableAnalytical']) { mixpanel.track(\"An event happened\", {\"item\":43}); }"
     end
   end
   describe '#init_javascript' do
